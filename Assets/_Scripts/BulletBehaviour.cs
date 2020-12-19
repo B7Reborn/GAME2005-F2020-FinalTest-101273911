@@ -13,6 +13,7 @@ public class BulletBehaviour : MonoBehaviour
     public bool isColliding;
     public Vector3 collisionNormal;
     public float penetration;
+    public bool isCube;
 
     public BulletManager bulletManager;
 

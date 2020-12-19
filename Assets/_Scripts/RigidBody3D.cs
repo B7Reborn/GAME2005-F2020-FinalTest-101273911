@@ -18,8 +18,10 @@ public class RigidBody3D : MonoBehaviour
     public BodyType bodyType;
     public float timer;
     public bool isFalling;
+    public bool firstTickFix;
 
     [Header("Attributes")]
+    public Vector3 position;
     public Vector3 velocity;
     public Vector3 acceleration;
     private float gravity;
@@ -35,14 +37,20 @@ public class RigidBody3D : MonoBehaviour
         {
             isFalling = true;
         }
+        position = transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (name != "Player")
+        {
+            transform.position = position;
+        }
+       
         if (bodyType == BodyType.DYNAMIC)
         {
-            if (isFalling)
+            if (isFalling && firstTickFix)
             {
                 timer += Time.deltaTime;
                 
@@ -57,12 +65,18 @@ public class RigidBody3D : MonoBehaviour
                     transform.position += velocity;
                 }
             }
+            else if (!firstTickFix)
+            {
+                firstTickFix = true;
+            }
         }
+        position = transform.position;
     }
 
     public void Stop()
     {
         timer = 0;
         isFalling = false;
+        firstTickFix = false;
     }
 }
