@@ -224,8 +224,16 @@ public class CollisionManager : MonoBehaviour
 
                 if (contactB.face == Vector3.down)
                 {
-                    a.gameObject.GetComponent<RigidBody3D>().Stop();
-                    a.isGrounded = true;
+                
+                        a.gameObject.GetComponent<RigidBody3D>().Stop();
+                        a.isGrounded = true;
+                        a.frictionUnder = b.friction; // Set friction of cube a to cube it is on top of
+                    // This ensures the cube never clips into the cube below it
+                    if (a.gameObject.GetComponent<RigidBody3D>().bodyType == BodyType.DYNAMIC)
+                    {
+                        Vector3 tempVector = Vector3.Scale(a.bounds.max, a.transform.localScale);
+                        a.gameObject.GetComponent<RigidBody3D>().position.y = b.max.y + tempVector.y;
+                    }
                 }
 
                 // Player vs cube collisions
@@ -233,23 +241,36 @@ public class CollisionManager : MonoBehaviour
                 {
                     if (b.gameObject.GetComponent<RigidBody3D>().bodyType == BodyType.DYNAMIC)
                     {
+                        // This vector is used to ensure the player never actually clips into a cube
+                        Vector3 tempVector = Vector3.Scale(b.bounds.max, b.transform.localScale);
+                        float gravityValue = b.gameObject.GetComponent<RigidBody3D>().gravity * b.gameObject.GetComponent<RigidBody3D>().gravityScale;
+                        float playerMass = a.gameObject.GetComponent<RigidBody3D>().mass;
+                        float cubeMass = b.gameObject.GetComponent<RigidBody3D>().mass;
+                        float combinedMass = playerMass + cubeMass;
                         if (contactB.face == Vector3.left)
                         {
-                            b.gameObject.GetComponent<RigidBody3D>().position.x = a.min.x - (penetration * 1.03f);
+                            b.gameObject.GetComponent<RigidBody3D>().position.x = a.min.x - tempVector.x;
+                            b.gameObject.GetComponent<RigidBody3D>().velocity.x = (((cubeMass - playerMass) / combinedMass) * b.gameObject.GetComponent<RigidBody3D>().velocity.x) +
+                                                    (((2.0f * playerMass) / combinedMass) * a.gameObject.GetComponent<RigidBody3D>().velocity.x);
                         }
                         else if (contactB.face == Vector3.right)
                         {
-                            b.gameObject.GetComponent<RigidBody3D>().position.x = a.max.x + (penetration * 1.03f);
+                            b.gameObject.GetComponent<RigidBody3D>().position.x = a.max.x + tempVector.x;
+                            b.gameObject.GetComponent<RigidBody3D>().velocity.x = (((cubeMass - playerMass) / combinedMass) * b.gameObject.GetComponent<RigidBody3D>().velocity.x) +
+                                                    (((2.0f * playerMass) / combinedMass) * a.gameObject.GetComponent<RigidBody3D>().velocity.x);
                         }
                         else if (contactB.face == Vector3.forward)
                         {
-                            b.gameObject.GetComponent<RigidBody3D>().position.z = a.max.z + (penetration * 1.03f);
+                            b.gameObject.GetComponent<RigidBody3D>().position.z = a.max.z + tempVector.z;
+                            b.gameObject.GetComponent<RigidBody3D>().velocity.z = (((cubeMass - playerMass) / combinedMass) * b.gameObject.GetComponent<RigidBody3D>().velocity.z) +
+                                                    (((2.0f * playerMass) / combinedMass) * a.gameObject.GetComponent<RigidBody3D>().velocity.z);
                         }
                         else if (contactB.face == Vector3.back)
                         {
-                            b.gameObject.GetComponent<RigidBody3D>().position.z = a.min.z - (penetration * 1.03f);
+                            b.gameObject.GetComponent<RigidBody3D>().position.z = a.min.z - tempVector.z;
+                            b.gameObject.GetComponent<RigidBody3D>().velocity.z = (((cubeMass - playerMass) / combinedMass) * b.gameObject.GetComponent<RigidBody3D>().velocity.z) +
+                                                    (((2.0f * playerMass) / combinedMass) * a.gameObject.GetComponent<RigidBody3D>().velocity.z);
                         }
-                        b.gameObject.GetComponent<RigidBody3D>().position.y = b.gameObject.GetComponent<RigidBody3D>().position.y - b.gameObject.GetComponent<RigidBody3D>().acceleration.y;
                     }
                 }
 

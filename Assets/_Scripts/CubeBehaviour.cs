@@ -63,7 +63,9 @@ public class CubeBehaviour : MonoBehaviour
     private MeshFilter meshFilter;
     public Bounds bounds;
     public bool isGrounded;
-
+    // First float is for the particular cube's friction value, second float is for the friction value of the surface underneath it.
+    public float friction;
+    public float frictionUnder;
 
     // Start is called before the first frame update
     void Start()

@@ -24,7 +24,7 @@ public class RigidBody3D : MonoBehaviour
     public Vector3 position;
     public Vector3 velocity;
     public Vector3 acceleration;
-    private float gravity;
+    public float gravity;
 
     // Start is called before the first frame update
     void Start()
@@ -50,7 +50,33 @@ public class RigidBody3D : MonoBehaviour
        
         if (bodyType == BodyType.DYNAMIC)
         {
-            if (isFalling && firstTickFix)
+            if (isFalling)
+            {
+                acceleration.y = gravity * gravityScale;
+            }
+            else
+            {
+                acceleration.y = 0.0f;
+                velocity.y = 0.0f;
+                // Set acceleration due to friction if body is not falling
+                if (velocity.x > 0.0f)
+                {
+                    acceleration.x = this.gameObject.GetComponent<CubeBehaviour>().frictionUnder * gravity * gravityScale;
+                }
+                else if (velocity.x < 0.0f)
+                {
+                    acceleration.x = -1.0f * this.gameObject.GetComponent<CubeBehaviour>().frictionUnder  * gravity * gravityScale;
+                }
+                if (velocity.z > 0.0f)
+                {
+                    acceleration.z = this.gameObject.GetComponent<CubeBehaviour>().frictionUnder * gravity * gravityScale;
+                }
+                else if (velocity.z < 0.0f)
+                {
+                    acceleration.z = -1.0f * this.gameObject.GetComponent<CubeBehaviour>().frictionUnder * gravity * gravityScale;
+                }
+            }
+            if (firstTickFix)
             {
                 timer += Time.deltaTime;
                 
@@ -59,9 +85,32 @@ public class RigidBody3D : MonoBehaviour
                     gravityScale = 0;
                 }
 
+                //if (isPositive(velocity.x) && isPositive(acceleration.x) && acceleration.x != 0.0f)
+                //{
+                //    velocity.x = 0.0f;
+                //    acceleration.x = 0.0f;
+                //}
+                //if (isPositive(velocity.z) && isPositive(acceleration.z) && acceleration.z != 0.0f)
+                //{
+                //    velocity.z = 0.0f;
+                //    acceleration.z = 0.0f;
+                //}
+                if (Mathf.Abs(velocity.x) <= Mathf.Abs(acceleration.x))
+                {
+                    velocity.x = 0.0f;
+                    acceleration.x = 0.0f;
+                }
+                if (Mathf.Abs(velocity.z) <= Mathf.Abs(acceleration.z))
+                {
+                    velocity.z = 0.0f;
+                    acceleration.z = 0.0f;
+                }
+
                 if (gravityScale > 0)
                 {
-                    velocity += acceleration * 0.5f * timer * timer;
+                    velocity.x += acceleration.x;
+                    velocity.y += acceleration.y * 0.5f * timer * timer;
+                    velocity.z += acceleration.z;
                     transform.position += velocity;
                 }
             }
@@ -78,5 +127,17 @@ public class RigidBody3D : MonoBehaviour
         timer = 0;
         isFalling = false;
         firstTickFix = false;
+    }
+
+    private bool isPositive(float f)
+    {
+        if (f >= 0.0f)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
